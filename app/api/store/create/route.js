@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { currentUser } from "@clerk/nextjs/server";
+
 // create the store
 export async function POST(request) {
     try {
@@ -29,6 +31,28 @@ export async function POST(request) {
         }
 
         const username = usernameRaw.trim()
+
+        // Sync User if not exists
+        let user = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+
+        if (!user) {
+            const clerkUser = await currentUser();
+            if (clerkUser) {
+                const { first_name, last_name, email_addresses, image_url } = clerkUser;
+                user = await prisma.user.create({
+                    data: {
+                        id: userId,
+                        name: `${first_name} ${last_name}`,
+                        email: email_addresses[0].email_address,
+                        image: image_url
+                    }
+                });
+            } else {
+                return NextResponse.json({ error: "User not found in Clerk" }, { status: 404 });
+            }
+        }
 
         // check is user have already registered a store
         const store = await prisma.store.findFirst({
@@ -80,24 +104,10 @@ export async function POST(request) {
         })
 
         //  link store to user
-        // user might not exist if webhook failed, so check first or wrap in try/catch for updating user
-        try {
-            await prisma.user.update({
-                where: { id: userId },
-                data: { store: { connect: { id: newStore.id } } }
-            })
-        } catch (userError) {
-            console.error("Store Create Error: Failed to link store to user", userError);
-            // Verify if user exists
-            const userExists = await prisma.user.findUnique({ where: { id: userId } });
-            if (!userExists) {
-                // Creating user record as fallback (this should ideally be handled by webhook)
-                // However, we don't have user details (name, email, image) here readily available from getAuth alone without extra call
-                console.error("User record not found in database for ID:", userId);
-                return NextResponse.json({ error: "User record not found. Please try logging out and in again." }, { status: 500 })
-            }
-            throw userError; // Re-throw if it's another error
-        }
+        await prisma.user.update({
+            where: { id: userId },
+            data: { store: { connect: { id: newStore.id } } }
+        })
 
         return NextResponse.json({ message: "applied, waiting for approval" })
 
