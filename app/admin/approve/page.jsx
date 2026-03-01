@@ -4,13 +4,14 @@ import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useAuth, useUser } from "@clerk/nextjs"
 import axios from "axios"
+import getErrorMessage from '@/lib/getErrorMessage'
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 
 export default function AdminApprove() {
 
-    const {user} = useUser()
-    const {getToken} = useAuth()
+    const { user } = useUser()
+    const { getToken } = useAuth()
     const [stores, setStores] = useState([])
     const [loading, setLoading] = useState(true)
 
@@ -19,11 +20,11 @@ export default function AdminApprove() {
         try {
             const token = await getToken()
             const { data } = await axios.get('/api/admin/approve-store', {
-                 headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` }
             })
             setStores(data.stores)
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
         setLoading(false)
     }
@@ -31,19 +32,19 @@ export default function AdminApprove() {
     const handleApprove = async ({ storeId, status }) => {
         try {
             const token = await getToken()
-            const { data } = await axios.post('/api/admin/approve-store', {storeId, status}, {
-                 headers: { Authorization: `Bearer ${token}` }
+            const { data } = await axios.post('/api/admin/approve-store', { storeId, status }, {
+                headers: { Authorization: `Bearer ${token}` }
             })
             toast.success(data.message)
             await fetchStores()
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
 
     }
 
     useEffect(() => {
-        if(user){
+        if (user) {
             fetchStores()
         }
     }, [user])

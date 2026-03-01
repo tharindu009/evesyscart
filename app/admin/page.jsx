@@ -7,6 +7,7 @@ import axios from "axios"
 import { CircleDollarSignIcon, ShoppingBasketIcon, StoreIcon, TagsIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
+import getErrorMessage from '@/lib/getErrorMessage'
 
 export default function AdminDashboard() {
 
@@ -38,7 +39,7 @@ export default function AdminDashboard() {
             })
             setDashboardData(data.dashboardData)
         } catch (error) {
-           toast.error(error?.response?.data?.error || error.message) 
+            toast.error(getErrorMessage(error))
         }
         setLoading(false)
     }

@@ -5,6 +5,7 @@ import { orderDummyData } from "@/assets/assets"
 import { useAuth } from "@clerk/nextjs"
 import axios from "axios"
 import toast from "react-hot-toast"
+import getErrorMessage from '@/lib/getErrorMessage'
 
 export default function StoreOrders() {
     const [orders, setOrders] = useState([])
@@ -16,30 +17,30 @@ export default function StoreOrders() {
     const { getToken } = useAuth()
 
     const fetchOrders = async () => {
-       try {
-        const token = await getToken()
-        const { data } = await axios.get('/api/store/orders', {headers: { Authorization: `Bearer ${token}` }})
-        setOrders(data.orders)
-       } catch (error) {
-        toast.error(error?.response?.data?.error || error.message)
-       }finally{
-        setLoading(false)
-       }
+        try {
+            const token = await getToken()
+            const { data } = await axios.get('/api/store/orders', { headers: { Authorization: `Bearer ${token}` } })
+            setOrders(data.orders)
+        } catch (error) {
+            toast.error(getErrorMessage(error))
+        } finally {
+            setLoading(false)
+        }
     }
 
     const updateOrderStatus = async (orderId, status) => {
         try {
             const token = await getToken()
-            await axios.post('/api/store/orders',{orderId, status}, {headers: { Authorization: `Bearer ${token}` }})
+            await axios.post('/api/store/orders', { orderId, status }, { headers: { Authorization: `Bearer ${token}` } })
             setOrders(prev =>
-                prev.map(order => 
-                    order.id === orderId ? {...order, status} : order
+                prev.map(order =>
+                    order.id === orderId ? { ...order, status } : order
                 )
             )
             toast.success('Order status updated!')
-       } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
-       }
+        } catch (error) {
+            toast.error(getErrorMessage(error))
+        }
     }
 
     const openModal = (order) => {

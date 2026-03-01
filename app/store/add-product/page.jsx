@@ -5,6 +5,7 @@ import axios from "axios"
 import Image from "next/image"
 import { useState } from "react"
 import { toast } from "react-hot-toast"
+import getErrorMessage from '@/lib/getErrorMessage'
 
 export default function StoreAddProduct() {
 
@@ -49,7 +50,7 @@ export default function StoreAddProduct() {
                             loading: "Analyzing image with AI...",
                             success: (res) => {
                                 console.log(res);
-                                
+
                                 const data = res.data
                                 if (data.name && data.description) {
                                     setProductInfo(prev => ({
@@ -63,7 +64,7 @@ export default function StoreAddProduct() {
                                 return "AI could not analyze the image"
                             },
                             error: (err) =>
-                                err?.response?.data?.error || err.message
+                                getErrorMessage(err)
                         }
                     )
                 } catch (error) {
@@ -100,7 +101,7 @@ export default function StoreAddProduct() {
             setImages({ 1: null, 2: null, 3: null, 4: null })
             setAiUsed(false)
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         } finally {
             setLoading(false)
         }

@@ -7,6 +7,7 @@ import Loading from "@/components/Loading"
 import Image from "next/image"
 import axios from "axios"
 import toast from "react-hot-toast"
+import getErrorMessage from '@/lib/getErrorMessage'
 
 export default function StoreShop() {
 
@@ -21,7 +22,7 @@ export default function StoreShop() {
             setStoreInfo(data.store)
             setProducts(data.store.Product)
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
         setLoading(false)
     }
@@ -56,7 +57,7 @@ export default function StoreShop() {
                                 <MailIcon className="w-4 h-4 text-gray-500 mr-2" />
                                 <span>{storeInfo.email}</span>
                             </div>
-                           
+
                         </div>
                     </div>
                 </div>

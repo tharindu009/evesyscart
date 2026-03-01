@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
+import getErrorMessage from '@/lib/getErrorMessage'
 import Image from "next/image"
 import Loading from "@/components/Loading"
 import { productDummyData } from "@/assets/assets"
@@ -19,11 +20,11 @@ export default function StoreManageProducts() {
 
     const fetchProducts = async () => {
         try {
-             const token = await getToken()
-             const { data } = await axios.get('/api/store/product', {headers: { Authorization: `Bearer ${token}` } })
-             setProducts(data.products.sort((a, b)=> new Date(b.createdAt) - new Date(a.createdAt)))
+            const token = await getToken()
+            const { data } = await axios.get('/api/store/product', { headers: { Authorization: `Bearer ${token}` } })
+            setProducts(data.products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
         setLoading(false)
     }
@@ -31,19 +32,19 @@ export default function StoreManageProducts() {
     const toggleStock = async (productId) => {
         try {
             const token = await getToken()
-            const { data } = await axios.post('/api/store/stock-toggle',{ productId }, {headers: { Authorization: `Bearer ${token}` } })
-            setProducts(prevProducts => prevProducts.map(product =>  product.id === productId ? {...product, inStock: !product.inStock} : product))
+            const { data } = await axios.post('/api/store/stock-toggle', { productId }, { headers: { Authorization: `Bearer ${token}` } })
+            setProducts(prevProducts => prevProducts.map(product => product.id === productId ? { ...product, inStock: !product.inStock } : product))
 
             toast.success(data.message)
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
     }
 
     useEffect(() => {
-        if(user){
+        if (user) {
             fetchProducts()
-        }  
+        }
     }, [user])
 
     if (loading) return <Loading />

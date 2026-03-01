@@ -8,10 +8,11 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
+import getErrorMessage from '@/lib/getErrorMessage'
 
 export default function Dashboard() {
 
-    const {getToken} = useAuth()
+    const { getToken } = useAuth()
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
 
@@ -35,10 +36,10 @@ export default function Dashboard() {
     const fetchDashboardData = async () => {
         try {
             const token = await getToken()
-            const { data } = await axios.get('/api/store/dashboard', {headers: { Authorization: `Bearer ${token}` }})
+            const { data } = await axios.get('/api/store/dashboard', { headers: { Authorization: `Bearer ${token}` } })
             setDashboardData(data.dashboardData)
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
         setLoading(false)
     }

@@ -4,6 +4,7 @@ import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useAuth, useUser } from "@clerk/nextjs"
 import axios from "axios"
+import getErrorMessage from '@/lib/getErrorMessage'
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 
@@ -18,10 +19,10 @@ export default function AdminStores() {
     const fetchStores = async () => {
         try {
             const token = await getToken()
-            const { data } = await axios.get('/api/admin/stores', {headers: { Authorization: `Bearer ${token}` }})
+            const { data } = await axios.get('/api/admin/stores', { headers: { Authorization: `Bearer ${token}` } })
             setStores(data.stores)
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
         setLoading(false)
     }
@@ -29,16 +30,16 @@ export default function AdminStores() {
     const toggleIsActive = async (storeId) => {
         try {
             const token = await getToken()
-            const { data } = await axios.post('/api/admin/toggle-store', {storeId}, {headers: { Authorization: `Bearer ${token}` }})
+            const { data } = await axios.post('/api/admin/toggle-store', { storeId }, { headers: { Authorization: `Bearer ${token}` } })
             await fetchStores()
             toast.success(data.message)
         } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+            toast.error(getErrorMessage(error))
         }
     }
 
     useEffect(() => {
-        if(user){
+        if (user) {
             fetchStores()
         }
     }, [user])

@@ -5,39 +5,40 @@ import OrderItem from "@/components/OrderItem";
 import { useAuth, useUser } from "@clerk/nextjs";
 import axios from "axios";
 import toast from "react-hot-toast";
+import getErrorMessage from '@/lib/getErrorMessage'
 import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
 
 export default function Orders() {
 
-    const {getToken} = useAuth()
-    const {user, isLoaded} = useUser()
+    const { getToken } = useAuth()
+    const { user, isLoaded } = useUser()
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true)
 
     const router = useRouter()
 
     useEffect(() => {
-       const fetchOrders = async () => {
-        try {
-            const token = await getToken()
-            const { data } = await axios.get('/api/orders', { headers: { Authorization: `Bearer ${token}` } })
-            setOrders(data.orders)
-            setLoading(false)
-        } catch (error) {
-            toast.error(error?.response?.data?.error || error.message)
+        const fetchOrders = async () => {
+            try {
+                const token = await getToken()
+                const { data } = await axios.get('/api/orders', { headers: { Authorization: `Bearer ${token}` } })
+                setOrders(data.orders)
+                setLoading(false)
+            } catch (error) {
+                toast.error(getErrorMessage(error))
+            }
         }
-       }
-       if(isLoaded){
-        if(user){
-            fetchOrders()
-        }else{
-            router.push('/')
+        if (isLoaded) {
+            if (user) {
+                fetchOrders()
+            } else {
+                router.push('/')
+            }
         }
-       }
     }, [isLoaded, user, getToken, router]);
 
-    if(!isLoaded || loading){
+    if (!isLoaded || loading) {
         return <Loading />
     }
 
