@@ -1,9 +1,10 @@
 'use client'
 
 import { addToCart } from "@/lib/features/cart/cartSlice";
-import { StarIcon, TagIcon, EarthIcon, CreditCardIcon, UserIcon } from "lucide-react";
+import { StarIcon, TagIcon, EarthIcon, CreditCardIcon, UserIcon, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import Image from "next/image";
 import Counter from "./Counter";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,8 +25,29 @@ const ProductDetails = ({ product }) => {
         dispatch(addToCart({ productId }))
     }
 
+    const handleShare = async () => {
+        const shareData = {
+            title: product.name,
+            text: `Check out ${product.name} - ${currency}${product.price}`,
+            url: window.location.href,
+        }
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData)
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    await navigator.clipboard.writeText(window.location.href)
+                    toast.success('Link copied to clipboard!')
+                }
+            }
+        } else {
+            await navigator.clipboard.writeText(window.location.href)
+            toast.success('Link copied to clipboard!')
+        }
+    }
+
     const averageRating = product.rating.reduce((acc, item) => acc + item.rating, 0) / product.rating.length;
-    
+
     return (
         <div className="flex max-lg:flex-col gap-12">
             <div className="flex max-sm:flex-col-reverse gap-3">
@@ -67,6 +89,10 @@ const ProductDetails = ({ product }) => {
                     }
                     <button onClick={() => !cart[productId] ? addToCartHandler() : router.push('/cart')} className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition">
                         {!cart[productId] ? 'Add to Cart' : 'View Cart'}
+                    </button>
+                    <button onClick={handleShare} className="flex items-center gap-2 border border-slate-300 text-slate-600 px-5 py-3 text-sm font-medium rounded hover:bg-slate-100 active:scale-95 transition">
+                        <Share2 size={16} />
+                        Share
                     </button>
                 </div>
                 <hr className="border-gray-300 my-5" />
